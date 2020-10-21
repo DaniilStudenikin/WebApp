@@ -1,5 +1,6 @@
 package ru.itis.javalab.repositories;
 
+import com.zaxxer.hikari.HikariDataSource;
 import ru.itis.javalab.models.User;
 
 import javax.sql.DataSource;
@@ -15,63 +16,39 @@ import java.util.Optional;
 public class UsersRepositoryJdbcImpl implements UsersRepository {
 
     //language=SQL
-    private static final String SQL_SELECT_BY_AGE = "select * from account where age =  ?";
+    private static final String SQL_SELECT_BY_AGE = "select * from accounts where age =  ?";
     //language=SQL
-    private static final String SQL_SELECT = "select * from account";
+    private static final String SQL_SELECT = "select * from accounts";
+    //language=SQL
+    private static final String SQL_SAVE = "insert into accounts(username, password, age) VALUES (?,?,?)";
+    //language=SQL
+    private static final String SQL_UPDATE = "update accounts set username = ?, password = ?, age = ? where id = ?";
+    //language=SQL
+    private static final String SQL_DELETE_BY_ID = "delete from accounts where id = ?";
+    //language=SQL
+    //private static final String SQL_DELETE = "";
 
     public UsersRepositoryJdbcImpl(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
-    private DataSource dataSource;
+    private final DataSource dataSource;
 
-    private RowMapper<User> userRowMapper = row -> User.builder()
+    private final RowMapper<User> userRowMapper = row -> User.builder()
             .id(row.getLong("id"))
-            .firstName(row.getString("first_name"))
-            .lastName(row.getString("last_name"))
+            .username(row.getString("username"))
+            .password(row.getString("password"))
             .age(row.getInt("age"))
             .build();
 
     @Override
+    public List<User> findAll() {
+        return new SimpleJdbcTemplate(dataSource).query(SQL_SELECT, userRowMapper);
+    }
+
+    @Override
     public List<User> findAllByAge(Integer age) {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = dataSource.getConnection();
-            statement = connection.prepareStatement(SQL_SELECT_BY_AGE);
-            statement.setInt(1, age);
-            resultSet = statement.executeQuery();
-
-            List<User> users = new ArrayList<>();
-            while (resultSet.next()) {
-                User user = userRowMapper.mapRow(resultSet);
-                users.add(user);
-            }
-            return users;
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        } finally {
-            if (resultSet != null) {
-                try {
-                    resultSet.close();
-                } catch (SQLException ignore) {
-                }
-            }
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException ignore) {
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException ignore) {
-                }
-            }
-        }
+        return new SimpleJdbcTemplate(dataSource).query(SQL_SELECT_BY_AGE, userRowMapper, age);
     }
 
     @Override
@@ -79,49 +56,6 @@ public class UsersRepositoryJdbcImpl implements UsersRepository {
         return Optional.empty();
     }
 
-    @Override
-    public List<User> findAll() {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = dataSource.getConnection();
-            statement = connection.prepareStatement(SQL_SELECT);
-            resultSet = statement.executeQuery();
-
-            List<User> users = new ArrayList<>();
-            while (resultSet.next()) {
-                User user = userRowMapper.mapRow(resultSet);
-                users.add(user);
-            }
-            return users;
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        } finally {
-            if (resultSet != null) {
-                try {
-                    resultSet.close();
-                } catch (SQLException ignore) {
-                }
-            }
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException ignore) {
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException ignore) {
-                }
-            }
-        }
-        return null;
-    }
-
-}
 
     @Override
     public Optional<User> findById(Long id) {
@@ -130,21 +64,21 @@ public class UsersRepositoryJdbcImpl implements UsersRepository {
 
     @Override
     public void save(User entity) {
-
+        new SimpleJdbcTemplate(dataSource).query(SQL_SAVE, userRowMapper, entity.getId(), entity.getUsername(), entity.getPassword(), entity.getAge());
     }
 
     @Override
     public void update(User entity) {
-
+        new SimpleJdbcTemplate(dataSource).query(SQL_UPDATE, userRowMapper, entity.getId(), entity.getUsername(), entity.getPassword(), entity.getAge());
     }
 
     @Override
     public void deleteByID(Long id) {
-
+        new SimpleJdbcTemplate(dataSource).query(SQL_DELETE_BY_ID, userRowMapper, id);
+        System.out.println("Success");
     }
 
     @Override
     public void delete(User entity) {
-
     }
 }
