@@ -19,6 +19,7 @@
             <option value="red">RED</option>
             <option value="green">GREEN</option>
             <option value="blue">BLUE</option>
+            <option value="pink">PINK</option>
         </select>
         <input type="submit" value="OK">
     </form>
