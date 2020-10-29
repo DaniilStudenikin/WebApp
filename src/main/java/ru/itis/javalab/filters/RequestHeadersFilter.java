@@ -5,13 +5,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * 12.10.2020
- * 08. Web Application
- *
- * @author Sidikov Marsel (First Software Engineering Platform)
- * @version v1.0
- */
 public class RequestHeadersFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -26,6 +19,7 @@ public class RequestHeadersFilter implements Filter {
         System.out.println(request.getHeader("User-Agent"));
 
         filterChain.doFilter(servletRequest, servletResponse);
+
     }
 
     @Override
